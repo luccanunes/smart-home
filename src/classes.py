@@ -6,7 +6,6 @@ class RoutineBehaviour(str, Enum):
     IGNORE = "IGNORE"
     NORMAL = "NORMAL"
     DELAYED = "DELAYED"
-    INSTANT = "INSTANT"
 
 class Lamp:
     def __init__(self, lamp_dict):
@@ -41,26 +40,37 @@ class Lamp:
     def set_colour_temperature(self, x):
         self.tuya_device_object.set_colourtemp_percentage(x)
 
-    def set_white(self, brightness, colour_temperature):
+    def set_white(self, brightness, colour_temperature=None):
+        if colour_temperature is None:
+            colour_temperature = brightness
         self.tuya_device_object.set_white_percentage(brightness, colour_temperature)
-
-    def set_white(self, x):
-        self.tuya_device_object.set_white_percentage(x, x)
 
     def execute_sunrise_routine(self, total_duration_minutes = 30, final_intensity = 100, num_steps = 10):
         if self.sunrise_behaviour == RoutineBehaviour.IGNORE: return
 
-        total_duration_seconds = total_duration_minutes * 60
-        step = final_intensity // num_steps
-        num_timeouts = num_steps - 1
-        timeout_seconds = total_duration_seconds / num_timeouts
+        initial_intensity = 1
+        if self.sunrise_behaviour == RoutineBehaviour.DELAYED:
+            initial_intensity = final_intensity // 2
+
+        total_duration_seconds = total_duration_minutes * 60        
+        timeout_seconds = total_duration_seconds / num_steps
+        intensity_range = final_intensity - initial_intensity
         
         print(f"[INFO] Starting sunrise routine for lamp '{self.name}' | Mode: {self.sunrise_behaviour.value} | Duration: {total_duration_minutes} min")
-        
-        for i in range(1, final_intensity + step, step):
-            print(f"set {i}, sleep {timeout_seconds}")
-            self.set_white(i)
-            sleep(timeout_seconds)
+
+        print(f"[{self.name}] set {initial_intensity}, sleep {timeout_seconds}")
+        self.set_white(initial_intensity)
+        sleep(timeout_seconds)
+
+        for step_current in range(1, num_steps + 1):
+            progress = step_current / num_steps
+            calculated_intensity = int(initial_intensity + (intensity_range * progress))
+            
+            print(f"[{self.name}] set {calculated_intensity}, sleep {timeout_seconds} {step_current < num_steps}")
+            self.set_white(calculated_intensity)
+
+            if step_current < num_steps:
+                sleep(timeout_seconds)
 
         
 
