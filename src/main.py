@@ -17,10 +17,6 @@ def main():
         RoutineBehaviour.DELAYED: None
     }
 
-    for lamp in lamp_list:
-        print("desligando", lamp.name)
-        lamp.turn_off()
-
     while True:
         now = datetime.now()
         today = now.date()
