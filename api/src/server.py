@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
-from classes import Lamp, LampState
-from utils import read_config
+from api.src.classes import Lamp, LampState
+from api.src.utils import read_config
 
 app = FastAPI(title="Smart Home API")
 
