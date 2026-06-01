@@ -40,9 +40,9 @@ class Lamp:
     @state.setter
     def state(self, new_state: LampState):
         if new_state.turned_on is not None:
-            if new_state.turned_on and not self._state.turned_on:
+            if new_state.turned_on == True and not self._state.turned_on:
                 self.turn_on()
-            elif not new_state.turned_on and self._state.turned_on:
+            elif new_state.turned_on == False and self._state.turned_on == True:
                 self.turn_off()
 
         if new_state.brightness is not None and new_state.colour_temperature is not None:
