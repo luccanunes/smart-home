@@ -20,6 +20,7 @@ class Lamp:
             if required_key not in lamp_dict:
                 raise KeyError(f"Missing key in Lamp object: {required_key}")
         
+        self.device_id = lamp_dict["device_id"]
         self.name = lamp_dict["name"]
         self.sunrise_behaviour = RoutineBehaviour(lamp_dict.get("sunrise_behaviour", "IGNORE"))
         self.sunset_behaviour = RoutineBehaviour(lamp_dict.get("sunset_behaviour", "IGNORE"))
@@ -96,30 +97,3 @@ class Lamp:
         self.tuya_device_object.set_white_percentage(brightness, colour_temperature)
         self._state.brightness = brightness
         self._state.colour_temperature = colour_temperature
-
-    # def execute_sunrise_routine(self, total_duration_minutes = 30, final_intensity = 100, num_steps = 10):
-    #     if self.sunrise_behaviour == RoutineBehaviour.IGNORE: return
-
-    #     initial_intensity = 1
-    #     if self.sunrise_behaviour == RoutineBehaviour.DELAYED:
-    #         initial_intensity = final_intensity // 2
-
-    #     total_duration_seconds = total_duration_minutes * 60        
-    #     timeout_seconds = total_duration_seconds / num_steps
-    #     intensity_range = final_intensity - initial_intensity
-        
-    #     print(f"[INFO] Starting sunrise routine for lamp '{self.name}' | Mode: {self.sunrise_behaviour.value} | Duration: {total_duration_minutes} min")
-
-    #     print(f"[{self.name}] set {initial_intensity}, sleep {timeout_seconds}")
-    #     self.set_white(initial_intensity)
-    #     sleep(timeout_seconds)
-
-    #     for step_current in range(1, num_steps + 1):
-    #         progress = step_current / num_steps
-    #         calculated_intensity = int(initial_intensity + (intensity_range * progress))
-            
-    #         print(f"[{self.name}] set {calculated_intensity}, sleep {timeout_seconds} {step_current < num_steps}")
-    #         self.set_white(calculated_intensity)
-
-    #         if step_current < num_steps:
-    #             sleep(timeout_seconds)
