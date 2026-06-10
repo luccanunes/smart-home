@@ -63,18 +63,25 @@ class Lamp:
         
         TODO: currently, if the lamp is offline on server startup, the state updates are inconsistent
         e.g., i can not seem to get the lamp to turn on by only sending the turned_on field
+        - need to investigate how to handle with offline lamps
         '''
+        print(f"[INFO] Setting new state of lamp '{self.name}' to {new_state}. Previous state: {self._state}")
         if new_state.turned_on is not None:
             if new_state.turned_on == True and self._state.turned_on != True:
+                print(f"\t[INFO] Turning on lamp")
                 self.turn_on()
             elif new_state.turned_on == False and self._state.turned_on != False:
+                print(f"\t[INFO] Turning off lamp")
                 self.turn_off()
 
         if new_state.brightness is not None and new_state.colour_temperature is not None:
+            print(f"\t[INFO] Setting brightness to {new_state.brightness} and colour temperature to {new_state.colour_temperature}")
             self.set_white(new_state.brightness, new_state.colour_temperature)
         elif new_state.brightness is not None and new_state.brightness != self._state.brightness:
+            print(f"\t[INFO] Setting brightness to {new_state.brightness}")
             self.set_brightness(new_state.brightness)
         elif new_state.colour_temperature is not None and new_state.colour_temperature != self._state.colour_temperature:
+            print(f"\t[INFO] Setting colour temperature to {new_state.colour_temperature}")
             self.set_colour_temperature(new_state.colour_temperature)
     
     def turn_off(self):
