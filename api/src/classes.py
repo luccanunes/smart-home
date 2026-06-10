@@ -55,6 +55,15 @@ class Lamp:
 
     @state.setter
     def state(self, new_state: LampState):
+        '''
+        TODO: currently, setting brightness to 50 on a turned off lamp will turn on the lamp but not update its turned on state
+        we should define what is expected here:
+        - should we really turn it on?
+        - should we take note that the brightness should be changed but only do it when the lamp is on again?
+        
+        TODO: currently, if the lamp is offline on server startup, the state updates are inconsistent
+        e.g., i can not seem to get the lamp to turn on by only sending the turned_on field
+        '''
         if new_state.turned_on is not None:
             if new_state.turned_on == True and self._state.turned_on != True:
                 self.turn_on()
