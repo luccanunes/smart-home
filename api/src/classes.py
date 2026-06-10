@@ -3,11 +3,6 @@ from enum import Enum
 from pydantic import BaseModel
 from typing import Optional
 
-class RoutineBehaviour(str, Enum):
-    IGNORE = "IGNORE"
-    NORMAL = "NORMAL"
-    DELAYED = "DELAYED"
-
 class LampState(BaseModel):
     turned_on: Optional[bool] = None
     brightness: Optional[int] = None
@@ -22,8 +17,6 @@ class Lamp:
         
         self.device_id = lamp_dict["device_id"]
         self.name = lamp_dict["name"]
-        self.sunrise_behaviour = RoutineBehaviour(lamp_dict.get("sunrise_behaviour", "IGNORE"))
-        self.sunset_behaviour = RoutineBehaviour(lamp_dict.get("sunset_behaviour", "IGNORE"))
 
         self.tuya_device_object = tinytuya.BulbDevice(
             lamp_dict["device_id"],
@@ -63,7 +56,7 @@ class Lamp:
     @state.setter
     def state(self, new_state: LampState):
         if new_state.turned_on is not None:
-            if new_state.turned_on == True and not self._state.turned_on:
+            if new_state.turned_on == True and self._state.turned_on != True:
                 self.turn_on()
             elif new_state.turned_on == False and self._state.turned_on != False:
                 self.turn_off()
