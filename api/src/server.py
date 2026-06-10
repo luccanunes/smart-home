@@ -5,7 +5,7 @@ from api.src.utils import read_config
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("INICIALIZANDO APARELHOS (Garantido apenas 1 vez)")
+    print("Starting up server")
     
     app.state.lamps = {lamp_data["device_id"]: Lamp(lamp_data) for lamp_data in read_config()}
     
