@@ -11,4 +11,6 @@ Always run from the **project root** (~/projects/smart-home):
 ## ⚠️ Port Blocked?
 If port 8000 is occupied by an old process, clear the memory with:
 
+`ps aux | grep uvicorn`
+`kill -9 ID`
 `pkill -f uvicorn`
