@@ -1,6 +1,5 @@
 import tinytuya
 from enum import Enum
-from time import sleep
 from pydantic import BaseModel
 from typing import Optional
 
@@ -31,7 +30,30 @@ class Lamp:
             lamp_dict["local_key"]
         )
         self.tuya_device_object.set_version(lamp_dict["version"])
-        self._state = LampState()
+
+        try:
+            current_status = self.tuya_device_object.state() or {}
+
+            turned_on = current_status.get("is_on")
+            brightness = current_status.get("brightness")
+            colour_temperature = current_status.get("colourtemp")
+
+            self._state = LampState(
+                turned_on=bool(turned_on) if turned_on is not None else None,
+                brightness=(brightness // 10) if brightness is not None else None,
+                colour_temperature=(colour_temperature // 10) if colour_temperature is not None else None,
+            )
+            self.online = True
+            print(f"[INFO] Lamp {self.name} online and correctly configured with state {self._state}")
+        except RuntimeError:
+            self._state = LampState(
+                turned_on=None,
+                brightness=None,
+                colour_temperature=None
+            )
+            self.online = False
+            print(f"[INFO] Lamp {self.name} could not be reached and has been configured with null state {self._state}")
+        
 
     @property
     def state(self) -> LampState:
@@ -59,9 +81,6 @@ class Lamp:
     def turn_on(self):
         self.tuya_device_object.turn_on()
         self._state.turned_on = True
-
-    def status(self):
-        return self.tuya_device_object.status()
     
     def set_brightness(self, x):
         self.tuya_device_object.set_brightness_percentage(x)
