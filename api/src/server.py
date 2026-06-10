@@ -25,6 +25,8 @@ def update_lamp_status(lamp_id: str, state: LampState):
     lamp_dict[lamp_id].state = state
     return {
         "message": "Update successful",
+        "device_id": lamp_dict[lamp_id].device_id,
+        "name": lamp_dict[lamp_id].name,
         "online": lamp_dict[lamp_id].online,
         "new_state": lamp_dict[lamp_id].state
     }
