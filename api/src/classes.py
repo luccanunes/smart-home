@@ -3,6 +3,9 @@ from enum import Enum
 from pydantic import BaseModel
 from typing import Optional
 
+class DeviceOfflineError(ConnectionError):
+    pass
+
 class LampState(BaseModel):
     turned_on: Optional[bool] = None
     brightness: Optional[int] = None
@@ -21,13 +24,15 @@ class Lamp:
         self.tuya_device_object = tinytuya.BulbDevice(
             lamp_dict["device_id"],
             lamp_dict["ip"],
-            lamp_dict["local_key"]
+            lamp_dict["local_key"],
+            connection_timeout=2,
+            connection_retry_limit=1,
+            connection_retry_delay=0
         )
         self.tuya_device_object.set_version(lamp_dict["version"])
 
         try:
-            current_status = self.tuya_device_object.state() or {}
-
+            current_status = self._call_tuya_device_object_method(self.tuya_device_object.state) or {}
             turned_on = current_status.get("is_on")
             brightness = current_status.get("brightness")
             colour_temperature = current_status.get("colourtemp")
@@ -39,7 +44,7 @@ class Lamp:
             )
             self.online = True
             print(f"[INFO] Lamp {self.name} online and correctly configured with state {self._state}")
-        except RuntimeError:
+        except DeviceOfflineError:
             self._state = LampState(
                 turned_on=None,
                 brightness=None,
@@ -84,25 +89,51 @@ class Lamp:
             print(f"\t[INFO] Setting colour temperature to {new_state.colour_temperature}")
             self.set_colour_temperature(new_state.colour_temperature)
     
+    def _call_tuya_device_object_method(self, method, *args, **kwargs):
+        '''
+        Tries to call the `method` method of the underlying `tuya_device_object`.
+
+        This might fail in two different ways:
+        - either the method execution raises an exception (commonly RuntimeError)
+        - or the method execution returns a dictionary with an 'Error' key describing the error
+
+        Raises: DeviceOfflineError if any of the above occur.
+        '''
+        try:
+            response = method(*args, **kwargs)
+
+            if isinstance(response, dict) and 'Error' in response:
+                self.online = False
+                print(f"[ERROR] Failed to call tuya method {method.__name__} for lamp {self.name}: {response['Error']}")
+                raise DeviceOfflineError(f"Failed to call tuya method {method.__name__} for lamp {self.name}: {response['Error']}")
+            
+            self.online = True
+            return response
+        except Exception as e:
+            self.online = False
+            print(f"[ERROR] Failed to call tuya method {method.__name__} for lamp {self.name}: {e}")
+            raise DeviceOfflineError(f"Failed to call tuya method {method.__name__} for lamp {self.name}: {e}")
+
+
     def turn_off(self):
-        self.tuya_device_object.turn_off()
+        self._call_tuya_device_object_method(self.tuya_device_object.turn_off)
         self._state.turned_on = False
 
     def turn_on(self):
-        self.tuya_device_object.turn_on()
+        self._call_tuya_device_object_method(self.tuya_device_object.turn_on)
         self._state.turned_on = True
     
     def set_brightness(self, x):
-        self.tuya_device_object.set_brightness_percentage(x)
+        self._call_tuya_device_object_method(self.tuya_device_object.set_brightness_percentage, x)
         self._state.brightness = x
 
     def set_colour_temperature(self, x):
-        self.tuya_device_object.set_colourtemp_percentage(x)
+        self._call_tuya_device_object_method(self.tuya_device_object.set_colourtemp_percentage, x)
         self._state.colour_temperature = x
 
     def set_white(self, brightness, colour_temperature=None):
         if colour_temperature is None:
             colour_temperature = brightness
-        self.tuya_device_object.set_white_percentage(brightness, colour_temperature)
+        self._call_tuya_device_object_method(self.tuya_device_object.set_white_percentage, brightness, colour_temperature)
         self._state.brightness = brightness
         self._state.colour_temperature = colour_temperature
