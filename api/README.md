@@ -20,7 +20,37 @@ Before running the server, create a `config.json` file in the repository root wi
 - `local_key`: Device authentication key
 - `version`: Tuya protocol version (e.g., 3.5)
 
-Example:
+#### Getting Tuya Device Information
+
+You need the device ID, local IP address, and local key to control each lamp.
+
+1. **Install tinytuya**:
+
+   ```bash
+   pip install tinytuya
+   ```
+
+2. **Run the wizard to get the local key**:
+
+   ```bash
+   python -m tinytuya wizard
+   ```
+
+   This interactive wizard will help you extract the local key from your Tuya account. Follow the prompts to log in with your Tuya app credentials.
+
+3. **Scan your network for device IPs**:
+
+   ```bash
+   python -m tinytuya scan
+   ```
+
+   This will discover all Tuya devices on your local network and display their device IDs and IP addresses.
+
+4. **Find the protocol version**:
+
+   Most Tuya devices use version 3.1 or 3.5. You can try both if unsure, or check your device documentation.
+
+#### Example Configuration
 
 ```json
 {
@@ -28,8 +58,8 @@ Example:
     {
       "name": "Bedroom",
       "device_id": "device_id_here",
-      "ip": "<IP_REDACTED>",
-      "local_key": "your_key_here",
+      "ip": "192.168.1.100",
+      "local_key": "your_local_key_here",
       "version": 3.5,
       "operation_mode": "CIRCADIAN"
     }
